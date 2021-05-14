@@ -1,0 +1,26 @@
+secretGenerator:
+- name: mysql-pass
+  literals:
+  - password=123456
+- name: wp1-data
+  literals:
+  - db-name=wp1
+  - username=wp1-user
+  - password=wp123
+- name: wp2-data
+  literals:
+  - db-name=wp2
+  - username=wp2-user
+  - password=wp234
+- name: wp3-data
+  literals:
+  - db-name=wp3
+  - username=wp3-user
+  - password=wp345
+resources:
+  - pv.yml
+  - deployment-mysql.yml
+  - deployment-wp-1.yml
+  - deployment-wp-2.yml
+  - deployment-wp-3.yml
+  - deployment-phpmyadmin.yml

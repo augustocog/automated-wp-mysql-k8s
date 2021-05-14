@@ -1,0 +1,141 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-mysql
+  labels:
+    app: wordpress
+spec:
+  ports:
+    - port: 3306
+  selector:
+    app: wordpress
+    tier: mysql
+  clusterIP: None
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim
+  labels:
+    app: mysql
+spec:
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 6Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-initdb-config
+data:
+  initdb.sh: |
+    #!/bin/sh
+    mysql -u root -p$MYSQL_ROOT_PASSWORD << MYSQL_SCRIPT
+    
+    CREATE DATABASE $WP1_DBNAME;
+    CREATE USER '$WP1_USER'@'%' IDENTIFIED BY '$WP1_PASS';
+    GRANT ALL PRIVILEGES ON $WP1_DBNAME.* TO '$WP1_USER'@'%';
+    FLUSH PRIVILEGES;
+    
+    CREATE DATABASE $WP2_DBNAME;
+    CREATE USER '$WP2_USER'@'%' IDENTIFIED BY '$WP2_PASS';
+    GRANT ALL PRIVILEGES ON $WP2_DBNAME.* TO '$WP2_USER'@'%';
+    FLUSH PRIVILEGES;
+    
+    CREATE DATABASE $WP3_DBNAME;
+    CREATE USER '$WP3_USER'@'%' IDENTIFIED BY '$WP3_PASS';
+    GRANT ALL PRIVILEGES ON $WP3_DBNAME.* TO '$WP3_USER'@'%';    
+    FLUSH PRIVILEGES;
+    MYSQL_SCRIPT
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress-mysql
+  labels:
+    app: wordpress
+spec:
+  selector:
+    matchLabels:
+      app: wordpress
+      tier: mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        tier: mysql
+    spec:
+      containers:
+      - image: mysql:5.7
+        name: mysql
+        env: 
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
+        - name: WP1_DBNAME
+          valueFrom:
+            secretKeyRef:
+              name: wp1-data
+              key: db-name
+        - name: WP1_USER
+          valueFrom:
+            secretKeyRef:
+              name: wp1-data
+              key: username
+        - name: WP1_PASS
+          valueFrom:
+            secretKeyRef:
+              name: wp1-data
+              key: password
+        - name: WP2_DBNAME
+          valueFrom:
+            secretKeyRef:
+              name: wp2-data
+              key: db-name
+        - name: WP2_USER
+          valueFrom:
+            secretKeyRef:
+              name: wp2-data
+              key: username
+        - name: WP2_PASS
+          valueFrom:
+            secretKeyRef:
+              name: wp2-data
+              key: password
+        - name: WP3_DBNAME
+          valueFrom:
+            secretKeyRef:
+              name: wp3-data
+              key: db-name
+        - name: WP3_USER
+          valueFrom:
+            secretKeyRef:
+              name: wp3-data
+              key: username
+        - name: WP3_PASS
+          valueFrom:
+            secretKeyRef:
+              name: wp3-data
+              key: password
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-pv-volume
+          mountPath: /var/lib/mysql
+        - name: mysql-initdb
+          mountPath: /docker-entrypoint-initdb.d
+      volumes:
+       - name: mysql-pv-volume
+         persistentVolumeClaim:
+           claimName: mysql-pv-claim
+       - name: mysql-initdb
+         configMap:
+           name: mysql-initdb-config
