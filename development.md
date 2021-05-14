@@ -23,3 +23,13 @@ After booting up all pods, it is advised to wait 1-2 minutes for the MySQL servi
 To test services, run the following command: minikube service *service-name* --url. This command will open
 a tunnel, which will make the service accessible via browsers. This works for all services running NodePorts.
 Note that MySQL here is a headless service, thus, it is directly accessible only from inside the cluster.
+
+To enable Prometheus+Grafana monitor, first, create monitoring namespace with the following command:
+
+minikube kubectl -- create namespace monitoring
+
+Following this, use kubectl -- create -f for the following files, in the given order:
+clusterrole.yml
+prometheus.yml
+deployment-prometheus.yml
+deployment-grafana.yml
