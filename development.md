@@ -10,7 +10,7 @@ installation create their DBs without the need for manual configuration), plus a
 logins and passwords. These secrets will go inside the kustomization file, which also contains all other 
 resources. Why? Because, that way, we can launch or terminate all components with a single command: 
 
-minikube kubectl -- apply -k./
+minikube kubectl -- apply -k./ or minikube kubectl -- delete -k./
 
 All other modules can be launched and deleted individually, however. To ensure data persistence, the
 WordPress and MySQL deployments are assigned each a Persistent Volume. Inside the MySQL deployment YAML
@@ -19,3 +19,7 @@ box, without the need to manually load scripts or input SQL queries by hand. To 
 the same login data on the kustomization file, works for both root and site owner users.
 
 After booting up all pods, it is advised to wait 1-2 minutes for the MySQL service to fully initialise.
+
+To test services, run the following command: minikube service *service-name* --url. This command will open
+a tunnel, which will make the service accessible via browsers. This works for all services running NodePorts.
+Note that MySQL here is a headless service, thus, it is directly accessible only from inside the cluster.
