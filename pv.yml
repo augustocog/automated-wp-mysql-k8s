@@ -57,3 +57,18 @@ spec:
     - ReadWriteOnce
   hostPath:
     path: "/mnt/data/mysql"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: grafana-pv-volume
+  labels:
+    type: local
+spec:
+  storageClassName: ""
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/grafana"
